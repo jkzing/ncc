@@ -3,6 +3,7 @@ const fs = require("graceful-fs");
 const crypto = require("crypto");
 const { join, dirname, extname, relative, resolve: pathResolve } = require("path");
 const webpack = require("webpack");
+const { rspack } = require('@rspack/core');
 const MemoryFS = require("memory-fs");
 const terser = require("terser");
 const tsconfigPaths = require("tsconfig-paths");
@@ -68,14 +69,16 @@ function ncc (
     mainFields,
     extensions: SUPPORTED_EXTENSIONS,
     exportsFields: ["exports"],
-    importsFields: ["imports"],
+      // TODO: not supported in rspack
+    // importsFields: ["imports"],
     conditionNames: ["require", "node", production ? "production" : "development"]
   });
   const esmDeps = () => ({
     mainFields,
     extensions: SUPPORTED_EXTENSIONS,
     exportsFields: ["exports"],
-    importsFields: ["imports"],
+      // TODO: not supported in rspack
+    // importsFields: ["imports"],
     conditionNames: ["import", "node", production ? "production": "development"]
   });
 
@@ -220,63 +223,74 @@ function ncc (
           if (rebuildHandler)
             rebuildHandler();
         });
-        compiler.hooks.normalModuleFactory.tap("ncc", NormalModuleFactory => {
-          function handler(parser) {
-            parser.hooks.assign.for("require").intercept({
-              register: tapInfo => {
-                if (tapInfo.name !== "CommonJsPlugin") {
-                  return tapInfo;
-                }
-                tapInfo.fn = () => {};
-                return tapInfo;
-              }
-            });
-          }
-          NormalModuleFactory.hooks.parser
-            .for("javascript/auto")
-            .tap("ncc", handler);
-          NormalModuleFactory.hooks.parser
-            .for("javascript/dynamic")
-            .tap("ncc", handler);
+        // compiler.hooks.normalModuleFactory.tap("ncc", NormalModuleFactory => {
+        //   function handler(parser) {
+        //     parser.hooks.assign.for("require").intercept({
+        //       register: tapInfo => {
+        //         if (tapInfo.name !== "CommonJsPlugin") {
+        //           return tapInfo;
+        //         }
+        //         tapInfo.fn = () => {};
+        //         return tapInfo;
+        //       }
+        //     });
+        //   }
+        //   NormalModuleFactory.hooks.parser
+        //     .for("javascript/auto")
+        //     .tap("ncc", handler);
+        //   NormalModuleFactory.hooks.parser
+        //     .for("javascript/dynamic")
+        //     .tap("ncc", handler);
 
-          return NormalModuleFactory;
-        });
+        //   return NormalModuleFactory;
+        // });
       }
     }
   ]
 
   if (typeof license === 'string' && license.length > 0)
   {
-    plugins.push(new LicenseWebpackPlugin({
-      outputFilename: license
-    }));
+    // TODO: causes error in rspack
+    // plugins.push(new LicenseWebpackPlugin({
+    //   outputFilename: license
+    // }));
   }
 
-  const compiler = webpack({
+  const compiler = rspack({
+  // const compiler = webpack({
     entry,
-    cache: cache === false ? undefined : {
-      type: "filesystem",
-      cacheDirectory: typeof cache === 'string' ? cache : nccCacheDir,
-      name: `ncc_${hashOf(entry)}`,
-      version: nccVersion
-    },
-    snapshot: {
-      managedPaths: [],
-      module: { hash: true }
-    },
-    amd: false,
+    // TODO: not supported in rspack
+    // cache: cache === false ? undefined : {
+    //   type: "filesystem",
+    //   cacheDirectory: typeof cache === 'string' ? cache : nccCacheDir,
+    //   name: `ncc_${hashOf(entry)}`,
+    //   version: nccVersion
+    // },
+    // TODO: causes error in rspack
+    // snapshot: {
+    // TODO: not supported in rspack
+    //   managedPaths: [],
+    //   module: { hash: true }
+    // },
+    // TODO: not supported in rspack
+    // amd: false,
     experiments: {
-      topLevelAwait: true,
+      // TODO: not supported in rspack
+      // topLevelAwait: true,
       outputModule: esm
     },
     optimization: {
-      nodeEnv: false,
+      // TODO: not supported in rspack
+      // nodeEnv: false,
       minimize: false,
       moduleIds: 'deterministic',
       chunkIds: 'deterministic',
-      mangleExports: true,
-      concatenateModules: true,
-      innerGraph: true,
+      // TODO: not supported in rspack
+      // mangleExports: true,
+      // TODO: not supported in rspack
+      // concatenateModules: true,
+      // TODO: not supported in rspack
+      // innerGraph: true,
       sideEffects: true
     },
     devtool: sourceMap ? "cheap-module-source-map" : false,
@@ -293,29 +307,35 @@ function ncc (
       // Webpack only emits sourcemaps for files ending in .js
       filename: ext === '.cjs' ? filename + '.js' : filename,
       libraryTarget: esm ? 'module' : 'commonjs2',
-      strictModuleExceptionHandling: true,
+      // TODO: not supported in rspack
+      // strictModuleExceptionHandling: true,
       module: esm
     },
     resolve: {
       extensions: SUPPORTED_EXTENSIONS,
       exportsFields: ["exports"],
-      importsFields: ["imports"],
+      // TODO: not supported in rspack
+      // importsFields: ["imports"],
       byDependency: {
         wasm: esmDeps(),
         esm: esmDeps(),
         url: { preferRelative: true },
         worker: { ...esmDeps(), preferRelative: true },
         commonjs: cjsDeps(),
-        amd: cjsDeps(),
+        // TODO: causes error in rspack
+        // amd: cjsDeps(),
+        // TODO: causes error in rspack
         // for backward-compat: loadModule
-        loader: cjsDeps(),
+        // loader: cjsDeps(),
         // for backward-compat: Custom Dependency
         unknown: cjsDeps(),
+        // TODO: causes error in rspack
         // for backward-compat: getResolve without dependencyType
-        undefined: cjsDeps()
+        // undefined: cjsDeps()
       },
       mainFields,
-      plugins: resolvePlugins
+      // TODO: not supported in rspack
+      // plugins: resolvePlugins
     },
     // https://github.com/vercel/ncc/pull/29#pullrequestreview-177152175
     node: false,
